@@ -12,7 +12,6 @@ const SLOOSH = new Audio();
 const WINNING = new Audio();
 const LOSING = new Audio();
 
-// Array of user ships 
 const USERSHIPS = [
     {
         type: 'battleship',
@@ -49,9 +48,12 @@ let allUserSpots, allComputerSpots;
 let computerShipChecker;
 let computerHits, computerMisses, userHits, userMisses;
 let internalCounter;
-
+let stopper;
 
 /*----- app's state (variables) -----*/
+document.querySelector('button').addEventListener('click', function() {
+    stopper = true;
+});
 document.querySelector('button').addEventListener('click', init);
 
 
@@ -60,8 +62,10 @@ let spaces = document.querySelectorAll('.space');
 let message = document.querySelector('h2');
 
 /*----- functions -----*/
+init();
 
 function init() {
+    stopper = false;
     internalCounter = 0;
     userShipCounter = 0;
     computerShipsCounter = 0;
@@ -74,17 +78,17 @@ function init() {
     computerHits = [];
     userHits = [];
     userMisses = [];
-    message.textContent = `Please place your ${USERSHIPS[userShipCounter].type}`;
+    message.textContent = `Please place your ${USERSHIPS[userShipCounter].type} - ${USERSHIPS[userShipCounter].spotLength} pieces`;
+    grid.removeEventListener('click', receivePlayerGuess);
     grid.addEventListener('click', populateUserShips);
     populateComputerShips();
 }
 
-init();
 
 function populateUserShips(evt) {
     let spot = evt.target.id;
-    message.textContent = `Please place your ${USERSHIPS[userShipCounter].type}`;
-    try {if (internalCounter >= USERSHIPS[userShipCounter].spotLength - 1) message.textContent = `Please place your ${USERSHIPS[userShipCounter + 1].type}`;}
+    message.textContent = `Please place your ${USERSHIPS[userShipCounter].type} - ${USERSHIPS[userShipCounter].spotLength} pieces`;
+    try {if (internalCounter >= USERSHIPS[userShipCounter].spotLength - 1) message.textContent = `Please place your ${USERSHIPS[userShipCounter + 1].type} - ${USERSHIPS[userShipCounter + 1].spotLength} pieces`;}
     catch(error) {}
     if (!allUserSpots.includes(parseInt(spot))) {
         document.getElementById(spot).textContent = 'X';
@@ -186,6 +190,7 @@ function receivePlayerGuess(evt) {
     let guess = evt.target.id;
     checkUserGuess(guess);
     renderBoard(userHits, userMisses);  
+    if (stopper) return;
     if (checkWinner(userHits, allComputerSpots)) {
         message.textContent = 'You Win!';
         setTimeout(function() {
@@ -197,6 +202,7 @@ function receivePlayerGuess(evt) {
 }
 
 function receiveComputerGuess() {
+    if (stopper) return;
     message.textContent = `Computer's Turn!`;
     computerGuess = Math.floor(Math.random() * Math.floor(100));
     while (computerHits.includes(computerGuess) && computerMisses.includes(computerGuess)) {
