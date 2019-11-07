@@ -1,0 +1,17 @@
+h1 {
+    font-size: 3rem;
+    text-align: center;
+}
+
+#grid {
+    display: grid;
+    grid-template-columns: repeat(10, 4rem);
+    grid-template-rows: repeat(10, 4rem);
+    width: 40rem;
+    height: 40rem;
+    border: 1px solid black;
+}
+
+.space {
+    border: 1px solid black;
+}
