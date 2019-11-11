@@ -50,6 +50,9 @@ let computerHits, computerMisses, userHits, userMisses;
 let internalCounter;
 let stopper;
 let hitCheck, hitIndex, moveUp, moveLeft, moveRight, moveDown, checkVertical;
+let lefterMost, righterMost, upperMost, downerMost;
+let moveLeftDowner, moveLeftUpper, moveRightDowner, moveRightUpper;
+let moveUpLefter, moveDownLefter, moveUpRighter, moveDownRighter;
 
 /*----- app's state (variables) -----*/
 document.querySelector('button').addEventListener('click', function() {
@@ -185,6 +188,18 @@ function checkComputerGuess(guess) {
         moveLeft = -1;
         moveUp = -10;
         moveDown = 10;
+        moveLeftDowner = 10;
+        moveLeftUpper = -10;
+        moveRightDowner = 10;
+        moveRightUpper = -10;
+        moveUpLefter = -1;
+        moveUpRighter = 1;
+        moveDownLefter = -1;
+        moveDownRighter = 1;
+        lefterMost = 0;
+        righterMost = 0;
+        downerMost = 0;
+        upperMost = 0;
         playKerboom();
     }
     else {
@@ -286,28 +301,12 @@ function playLosing() {
 }
 
 
-// Variables:
-// hitCheck (Boolean) becomes true if random guess yields a hit
-
-// hitIndex: the index that got a hit, which triggers the getLinkedGuess function
-
-// moveUp: moves guess -10(i) indices
-
-// moveLeft: moves guess -1(i) indices
-
-// moveRight: moves guess 1(i) indices
-
-// moveDown: moves guess 10(i) indices
-
-// BetterGuesses: array to contain linked guesses
-
-// Functions:
-
 
 function getLinkedGuess() {
     if (moveRight && (hitIndex + moveRight) % 10 < 10 && !(computerHits.includes(hitIndex + moveRight)) && !(computerMisses.includes(hitIndex + moveRight))) {
         if (checkComputerNonRandomGuess(hitIndex + moveRight)) {
             moveRight++;
+            righterMost = righterMost +1;
             checkVertical = false;
         }
         else {
@@ -317,6 +316,7 @@ function getLinkedGuess() {
     else if (moveLeft && ((hitIndex + moveLeft) % 10 >= 0) && !(computerHits.includes(hitIndex + moveLeft)) && !(computerMisses.includes(hitIndex + moveLeft))) {
         if (checkComputerNonRandomGuess(hitIndex + moveLeft)) {
             moveLeft = moveLeft - 1;
+            lefterMost--;
             checkVertical = false;
         }
         else {
@@ -326,26 +326,34 @@ function getLinkedGuess() {
     else if (moveUp && checkVertical && (hitIndex + moveUp > 0) && !(computerHits.includes(hitIndex + moveUp)) && !(computerMisses.includes(hitIndex + moveUp))) {
         if (checkComputerNonRandomGuess(hitIndex + moveUp)) {
             moveUp = moveUp - 10;
+            upperMost = upperMost - 10;
         }
         else {
             moveUp = 0;
         }
     }   
-    else if (moveDown && ((hitIndex + moveDown) < 100) && !(computerHits.includes(hitIndex + moveDown)) && !(computerMisses.includes(hitIndex + moveDown))) {
+    else if (moveDown && checkVertical && ((hitIndex + moveDown) < 100) && !(computerHits.includes(hitIndex + moveDown)) && !(computerMisses.includes(hitIndex + moveDown))) {
         if (checkComputerNonRandomGuess(hitIndex + moveDown)) {
             moveDown = moveDown + 10;
+            downerMost = downerMost + 10;
         }
         else {
             moveDown = 0;
-            hitCheck = false;
         }
     } 
+    else if (righterMost || lefterMost) {
+        guessVertical();
+    }
+    else if (upperMost || downerMost) {
+        guessHorizontal();
+    }
     else {
         hitCheck = false;
         receiveComputerGuess();
         return;
     }  
     if (checkWinner(computerHits, allUserSpots)) {
+        renderBoard(computerHits, computerMisses, allUserSpots)
         message.textContent = 'Computer Wins';
         setTimeout(function() {
             playLosing();
@@ -355,21 +363,86 @@ function getLinkedGuess() {
     renderBoard(computerHits, computerMisses, allUserSpots);
     setTimeout(playerTurn, 2000);
 }
-// function getLinkedGuess()
-    // this function gets called by the general guess function if hitCheck is true, it will then set CheckIndex to the hit index
-    // if this function is called, it will call the playerGuess function and return from the computerGuess function so that the random guess is not called 
-    // This function has a series of if/then statements that look like:
-    // if (BetterGuesses.length >= 5)
-        // hitCheck = false;
-        // call playerGuess
-        // return;
-    // if (moveRight && guess+moveRight % 10 < 9 && not guessed already)
-    // else if (moveUp && guess + moveUp % 10 > 1 && not guessed already))
-    // And so on
-    // Here is what the moveRight will if/then will do
-        //  guess the index: guess + moveRight
-        //  Update computer guess arrays, and add to BetterGuesses
-        // if (userArray.includes(guess + moveRight) 
-            // add 1 to moveRight
-        //  else 
-            // moveRight = 0;
+
+
+function guessVertical() {
+    if (moveLeftUpper && (hitIndex + lefterMost + moveLeftUpper >= 0) && !(computerHits.includes(hitIndex + lefterMost + moveLeftUpper)) && !(computerMisses.includes(hitIndex + lefterMost + moveLeftUpper))) {
+        if (checkComputerNonRandomGuess(hitIndex + lefterMost + moveLeftUpper)) {
+            moveLeftUpper = moveLeftUpper - 10;
+        }
+        else {
+            moveLeftUpper = 0;
+        }
+    }
+    else if (moveLeftDowner && (hitIndex + lefterMost + moveLeftDowner < 100) && !(computerHits.includes(hitIndex + lefterMost + moveLeftDowner)) && !(computerMisses.includes(hitIndex + lefterMost + moveLeftDowner))) {
+        if (checkComputerNonRandomGuess(hitIndex + lefterMost + moveLeftDowner)) {
+            moveLeftDowner = moveLeftDowner + 10;
+        }
+        else {
+            moveLeftDowner = 0;
+        }        
+    }
+    else if (moveRightUpper && (hitIndex + righterMost + moveRightUpper >= 0) && !(computerHits.includes(hitIndex + righterMost + moveRightUpper)) && !(computerMisses.includes(hitIndex + righterMost + moveRightUpper))) {
+        if (checkComputerNonRandomGuess(hitIndex + righterMost + moveRightUpper)) {
+            moveRightUpper = moveRightUpper - 10;
+        }
+        else {
+            moveRightUpper = 0;
+        }
+    }
+    else if (moveRightDowner && (hitIndex + righterMost + moveRightDowner < 100) && !(computerHits.includes(hitIndex + righterMost + moveRightDowner)) && !(computerMisses.includes(hitIndex + righterMost + moveRightDowner))) {
+        if (checkComputerNonRandomGuess(hitIndex + righterMost + moveRightDowner)) {
+            moveRightDowner = moveRightDowner + 10;
+        }
+        else {
+            moveRightDowner = 0;
+        }      
+    }
+    else {
+        lefterMost = 0;
+        righterMost = 0;
+        hitCheck = false;
+        receiveComputerGuess();
+    }
+}
+
+function guessHorizontal() {
+    if (moveUpLefter && ((hitIndex + upperMost + moveUpLefter) % 10 >= 0) && !(computerHits.includes(hitIndex + upperMost + moveUpLefter)) && !(computerMisses.includes(hitIndex + upperMost + moveUpLefter))) {
+        if (checkComputerNonRandomGuess(hitIndex + upperMost + moveUpLefter)) {
+            moveUpLefter = moveUpLefter - 1;
+        }
+        else {
+            moveUpLefter = 0;
+        }
+    }
+    else if (moveUpRighter && ((hitIndex + upperMost + moveUpRighter) % 10 > 0) && !(computerHits.includes(hitIndex + upperMost + moveUpRighter)) && !(computerMisses.includes(hitIndex + upperMost + moveUpRighter))) {
+        if (checkComputerNonRandomGuess(hitIndex + upperMost + moveUpRighter)) {
+            moveUpRighter = moveUpRighter + 1;
+        }
+        else {
+            moveUpRighter = 0;
+        }        
+    }
+    else if (moveDownLefter && ((hitIndex + downerMost + moveDownLefter) % 10 >= 0) && !(computerHits.includes(hitIndex + downerMost + moveDownLefter)) && !(computerMisses.includes(hitIndex + downerMost + moveDownLefter))) {
+        if (checkComputerNonRandomGuess(hitIndex + downerMost + moveDownLefter)) {
+            moveDownLefter = moveDownLefter - 1;
+        }
+        else {
+            moveDownLefter = 0;
+        }
+    }
+    else if (moveDownRighter && (hitIndex + downerMost + moveDownRighter >= 0) && !(computerHits.includes(hitIndex + downerMost + moveDownRighter)) && !(computerMisses.includes(hitIndex + downerMost + moveDownRighter))) {
+        if (checkComputerNonRandomGuess(hitIndex + downerMost + moveDownRighter)) {
+            moveDownRighter = moveDownRighter + 1;
+        }
+        else {
+            moveDownRighter = 0;
+        }      
+    }
+    else {
+        upperMost = 0;
+        downerMost = 0;
+        hitCheck = false;
+        receiveComputerGuess();
+    } 
+}
